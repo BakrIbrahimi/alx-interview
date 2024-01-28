@@ -1,32 +1,44 @@
 #!/usr/bin/python3
-"""This script reads lines from stdin in this format
-<IP Address> - [<date>] "GET /projects/260 HTTP/1.1" <status code> <file size>
-and after every 10 lines or keyboard interruption
-it prints File size: <total size>
-<status code>: <number> for every status code"""
 
-from sys import stdin
+""" reads stdin line by line and computes metric"""
 
+if __name__ == '__main__':
 
-try:
-    my_dict = {}
-    total_size = 0
-    for i, line in enumerate(stdin, start=1):
-        line = line.strip()
-        parts = line.split(" ")
-        total_size += int(parts[-1])
-        if parts[-2] not in my_dict:
-            my_dict[parts[-2]] = 1
-        else:
-            my_dict[parts[-2]] += 1
-        my_dict = dict(sorted(my_dict.items()))
-        if i % 10 == 0:
-            print("File size: {}".format(total_size))
-            for key, val in my_dict.items():
-                print("{}: {}".format(key, val))
-except KeyboardInterrupt:
-    pass
-finally:
-    print("File size: {}".format(total_size))
-    for key, val in my_dict.items():
-        print("{}: {}".format(key, val))
+    def printer(file_size, status):
+
+        '''Print logs'''
+
+        print("File size: {:d}".format(file_size))
+        for i in sorted(status.keys()):
+            if status[i] != 0:
+                print("{}: {}".format(i, status[i]))
+
+    file_size = 0
+    status = {"200": 0, "301": 0, "400": 0, "401": 0,
+              "403": 0, "404": 0, "405": 0, "500": 0}
+
+    counter = 0
+    try:
+        with open(0) as f:
+            for line in f:
+                counter += 1
+                data = line.split()
+
+                try:
+                    file_size += int(data[-1])
+                except Exception:
+                    pass
+
+                try:
+                    st = data[-2]
+                    if st in status:
+                        status[st] += 1
+
+                except Exception:
+                    pass
+                if counter % 10 == 0:
+                    printer(file_size, status)
+            printer(file_size, status)
+    except KeyboardInterrupt:
+        printer(file_size, status)
+        raise
